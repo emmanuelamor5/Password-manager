@@ -1,6 +1,6 @@
 // password-manager.js
 // ICS 3201 – Secure Password Manager Project
-// ==========================================
+// 
 
 const {
   getRandomBytes,
@@ -25,18 +25,18 @@ class Keychain {
     this.encKey = encKey;
   }
 
-  // ---------------------------------------------------------
+
   // 1. Initialize a NEW empty keychain
-  // ---------------------------------------------------------
+
   static async init(password) {
     const salt = encodeBuffer(getRandomBytes(16)); // 128-bit salt
     const { hmacKey, encKey } = await Keychain._deriveKeys(password, salt);
     return new Keychain({}, salt, hmacKey, encKey);
   }
 
-  // ---------------------------------------------------------
+  
   // 2. Load from serialized representation
-  // ---------------------------------------------------------
+
     static async load(password, representation, trustedDataCheck) {
     const parsed = JSON.parse(representation);
     const { kvs, salt } = parsed;
@@ -80,9 +80,7 @@ if (keys.length > 0) {
   }
 
 
-  // ---------------------------------------------------------
   // 3. Derive subkeys (HMAC + AES) using PBKDF2
-  // ---------------------------------------------------------
   static async _deriveKeys(password, salt) {
     const baseKey = await subtle.importKey(
       "raw",
@@ -137,9 +135,8 @@ if (keys.length > 0) {
   }
 
 
-  // ---------------------------------------------------------
   // 4. Add or update a domain-password pair
-  // ---------------------------------------------------------
+
   async set(domain, password) {
     const domainMac = await this._domainHMAC(domain);
     const iv = getRandomBytes(12);
@@ -162,9 +159,8 @@ if (keys.length > 0) {
     };
   }
 
-  // ---------------------------------------------------------
+
   // 5. Retrieve decrypted password
-  // ---------------------------------------------------------
   async get(domain) {
     const domainMac = await this._domainHMAC(domain);
     const entry = this.kvs[domainMac];
@@ -187,9 +183,8 @@ if (keys.length > 0) {
     }
   }
 
-  // ---------------------------------------------------------
+
   // 6. Remove entry
-  // ---------------------------------------------------------
   async remove(domain) {
     const domainMac = await this._domainHMAC(domain);
     if (this.kvs[domainMac]) {
@@ -199,9 +194,8 @@ if (keys.length > 0) {
     return false;
   }
 
-  // ---------------------------------------------------------
+  
   // 7. Serialize keychain + hash
-  // ---------------------------------------------------------
   async dump() {
     const kvsJSON = JSON.stringify(this.kvs);
     const hashBuf = await subtle.digest("SHA-256", stringToBuffer(kvsJSON));
@@ -216,9 +210,9 @@ if (keys.length > 0) {
     return [repr, checksum];
   }
 
-  // ---------------------------------------------------------
+  
   // 8. Internal helper: compute domain HMAC
-  // ---------------------------------------------------------
+  
   async _domainHMAC(domain) {
     const macBuf = await subtle.sign("HMAC", this.hmacKey, stringToBuffer(domain));
     return encodeBuffer(macBuf);
